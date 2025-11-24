@@ -1,5 +1,7 @@
 """Flask entry point for FocusTrack."""
 from collections import defaultdict
+from datetime import date, datetime
+import calendar
 
 from flask import Flask, redirect, render_template, request, url_for
 
@@ -25,12 +27,20 @@ Base.metadata.create_all(engine)
 def dashboard():
     tasks = task_manager.list_tasks()
     total_tasks = len(tasks)
+    # count tasks by status
     completed_tasks = sum(1 for t in tasks if t.status == "Done")
     in_progress_tasks = sum(1 for t in tasks if t.status == "In Progress")
-    pending_tasks = sum(1 for t in tasks if t.status != "Done")
-    percent_complete = int((completed_tasks / total_tasks) * 100) if total_tasks else 0
-    percent_pending = int((pending_tasks / total_tasks) * 100) if total_tasks else 0
-    percent_in_progress = int((in_progress_tasks / total_tasks) * 100) if total_tasks else 0
+    pending_tasks = sum(1 for t in tasks if t.status == "Pending")
+
+    # compute percentages for progress bar
+    if total_tasks > 0:
+        percent_complete = int((completed_tasks / total_tasks) * 100)
+        percent_in_progress = int((in_progress_tasks / total_tasks) * 100)
+        percent_pending = 100 - percent_complete - percent_in_progress
+    else:
+        percent_complete = 0
+        percent_in_progress = 0
+        percent_pending = 0
 
     def sort_key(task):
         return task.due_date or "9999-12-31"
@@ -104,17 +114,50 @@ def delete_task(task_id):
 
 
 # calendar view
-@app.route("/calendar")
-def calendar():
-    grouped = defaultdict(list)
+@app.route("/calendar", endpoint="calendar")
+def calendar_view():
+    today = date.today()
+    year = request.args.get("year", type=int) or today.year
+    month = request.args.get("month", type=int) or today.month
+
+    # build month matrix
+    cal = calendar.Calendar(firstweekday=6)
+    weeks = cal.monthdayscalendar(year, month)
+
+    # group tasks by due date
+    tasks_by_date = {}
     for task in task_manager.list_tasks():
-        key = task.due_date or "No due date"
-        grouped[key].append(task)
-    grouped_tasks = dict(sorted(grouped.items()))
+        if task.due_date:
+            try:
+                d = datetime.strptime(task.due_date, "%Y-%m-%d").date()
+                tasks_by_date.setdefault(d, []).append(task)
+            except Exception:
+                pass
+
+    # compute previous and next month
+    if month == 1:
+        prev_year, prev_month = year - 1, 12
+    else:
+        prev_year, prev_month = year, month - 1
+    if month == 12:
+        next_year, next_month = year + 1, 1
+    else:
+        next_year, next_month = year, month + 1
+
     return render_template(
         "calendar.html",
         active_page="calendar",
-        grouped_tasks=grouped_tasks,
+        year=year,
+        month=month,
+        month_name=calendar.month_name[month],
+        weeks=weeks,
+        tasks_by_date=tasks_by_date,
+        today=today,
+        prev_year=prev_year,
+        prev_month=prev_month,
+        next_year=next_year,
+        next_month=next_month,
+        date=date,
     )
 
 
