@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page">
+  <div class="card">
+    <h2>Calendar</h2>
+    {% if grouped_tasks %}
+      <div class="calendar-list">
+        {% for date, tasks in grouped_tasks.items() %}
+          <div class="calendar-day">
+            <div class="calendar-date">📅 {{ date }}</div>
+            <ul>
+              {% for task in tasks %}
+                <li>
+                  <span class="calendar-task-title">{{ task.title }}</span>
+                  <span class="calendar-task-status">({{ task.status }})</span>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p>Add tasks to see them here.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

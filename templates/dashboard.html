@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page">
+  <div class="top-row">
+    <div class="card card-progress">
+      <h2>Overall Progress</h2>
+      <div class="progress-summary">{{ percent_complete }}% Complete</div>
+      <div class="progress-bar">
+        <div class="progress-segment progress-pending" style="width: {{ percent_pending }}%"></div>
+        <div class="progress-segment progress-inprogress" style="width: {{ percent_in_progress }}%"></div>
+        <div class="progress-segment progress-complete" style="width: {{ percent_complete }}%"></div>
+      </div>
+      <div class="progress-legend">
+        <div class="legend-item">
+          <span class="legend-box pending"></span> Pending ({{ pending_tasks }})
+        </div>
+        <div class="legend-item">
+          <span class="legend-box inprogress"></span> In Progress ({{ in_progress_tasks }})
+        </div>
+        <div class="legend-item">
+          <span class="legend-box complete"></span> Done ({{ completed_tasks }})
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-priority">
+      <h2>Tasks by Priority</h2>
+      <div class="priority-content">
+        <div class="progress-circle">{{ percent_complete }}% Complete</div>
+        <div class="priority-legend">
+          <div class="priority-item priority-high">
+            <div class="priority-left">
+              <span class="priority-dot"></span>
+              <span class="priority-label">🔥 High</span>
+            </div>
+            <span class="priority-count">{{ counts_by_priority.high }}</span>
+          </div>
+          <div class="priority-item priority-medium">
+            <div class="priority-left">
+              <span class="priority-dot"></span>
+              <span class="priority-label">⏳ Medium</span>
+            </div>
+            <span class="priority-count">{{ counts_by_priority.medium }}</span>
+          </div>
+          <div class="priority-item priority-low">
+            <div class="priority-left">
+              <span class="priority-dot"></span>
+              <span class="priority-label">✅ Low</span>
+            </div>
+            <span class="priority-count">{{ counts_by_priority.low }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-recent">
+    <div class="card-header">
+      <h2>Recent Tasks</h2>
+    </div>
+    {% if recent_tasks %}
+      <div class="recent-list">
+        {% for task in recent_tasks %}
+          <div class="recent-task-row">
+            <div class="task-status-icon">
+              {% if task.status == 'Done' %}✔{% elif task.status == 'In Progress' %}⏳{% else %}⬜{% endif %}
+            </div>
+            <div class="task-bar">{{ task.title }}</div>
+            <div class="task-due">Due: {{ task.due_date or 'No date' }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p>No tasks yet.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

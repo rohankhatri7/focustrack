@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page">
+  <div class="card">
+    <h2>Add Task</h2>
+    <form method="post" class="task-form">
+      <div class="form-grid">
+        <label>Title
+          <input type="text" name="title" required>
+        </label>
+        <label>Description
+          <textarea name="description" rows="2"></textarea>
+        </label>
+        <label>Due date
+          <input type="text" name="due_date" placeholder="YYYY-MM-DD">
+        </label>
+        <label>Priority
+          <select name="priority">
+            {% for p in priorities %}
+              <option value="{{ p }}">{{ p }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Category
+          <input type="text" name="category_name" list="category-list">
+          <datalist id="category-list">
+            {% for c in categories %}
+              <option value="{{ c.name }}"></option>
+            {% endfor %}
+          </datalist>
+        </label>
+        <label>Status
+          <select name="status">
+            {% for s in statuses %}
+              <option value="{{ s }}">{{ s }}</option>
+            {% endfor %}
+          </select>
+        </label>
+      </div>
+      <button type="submit">Add Task</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Tasks</h2>
+    {% if tasks %}
+      <table class="simple-table">
+        <tr>
+          <th>Title</th><th>Due</th><th>Status</th><th>Category</th><th>Actions</th>
+        </tr>
+        {% for task in tasks %}
+          <tr>
+            <td>{{ task.title }}</td>
+            <td>{{ task.due_date or 'n/a' }}</td>
+            <td>
+              <span class="status-badge {% if task.status == 'Done' %}status-done{% elif task.status == 'In Progress' %}status-progress{% else %}status-pending{% endif %}">
+                {{ task.status }}
+              </span>
+            </td>
+            <td>{{ task.category.name if task.category else 'Uncategorized' }}</td>
+            <td>
+              <form action="{{ url_for('mark_done', task_id=task.id) }}" method="post" style="display:inline;">
+                <button type="submit">Mark Done</button>
+              </form>
+              <form action="{{ url_for('delete_task', task_id=task.id) }}" method="post" style="display:inline;">
+                <button type="submit" class="danger">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </table>
+    {% else %}
+      <p>No tasks yet.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

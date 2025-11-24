@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>FocusTrack</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="app-title">FocusTrack</div>
+        <div class="app-subtitle">Task Manager</div>
+      </div>
+      <nav class="nav-links">
+        <a class="nav-link {% if active_page == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Dashboard</span>
+        </a>
+        <a class="nav-link {% if active_page == 'tasks' %}active{% endif %}" href="{{ url_for('tasks') }}">
+          <span class="nav-icon">✅</span>
+          <span class="nav-label">Tasks</span>
+        </a>
+        <a class="nav-link {% if active_page == 'calendar' %}active{% endif %}" href="{{ url_for('calendar') }}">
+          <span class="nav-icon">📅</span>
+          <span class="nav-label">Calendar</span>
+        </a>
+      </nav>
+    </aside>
+    <div class="main-content">
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</body>
+</html>
