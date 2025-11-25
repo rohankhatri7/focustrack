@@ -1,4 +1,3 @@
-"""Flask entry point for FocusTrack."""
 from collections import defaultdict
 from datetime import date, datetime
 import calendar
@@ -6,7 +5,7 @@ import calendar
 from flask import Flask, redirect, render_template, request, url_for
 
 from database import Base, engine, get_session
-import models  # noqa: F401  # ensure models register with metadata
+import models
 from managers import CategoryManager, ReminderManager, TaskManager
 
 app = Flask(__name__)
@@ -93,6 +92,39 @@ def tasks():
         "tasks.html",
         active_page="tasks",
         tasks=tasks_list,
+        categories=categories,
+        priorities=TaskManager.VALID_PRIORITIES,
+        statuses=TaskManager.VALID_STATUS,
+    )
+
+
+# edit task
+@app.route("/tasks/<int:task_id>/edit", methods=["GET", "POST"])
+def edit_task(task_id):
+    task = task_manager.get_task(task_id)
+    if not task:
+        return redirect(url_for("tasks"))
+
+    if request.method == "POST":
+        # handle edit form submission
+        title = request.form.get("title")
+        description = request.form.get("description")
+        due_date = request.form.get("due_date")
+        priority = request.form.get("priority")
+        status = request.form.get("status") or task.status
+        category_name = request.form.get("category_name")
+        try:
+            task_manager.update_task(task_id, title, description, due_date, priority, status, category_name)
+        except Exception:
+            pass
+        return redirect(url_for("tasks"))
+
+    # show edit form
+    categories = category_manager.list_categories()
+    return render_template(
+        "edit_task.html",
+        active_page="tasks",
+        task=task,
         categories=categories,
         priorities=TaskManager.VALID_PRIORITIES,
         statuses=TaskManager.VALID_STATUS,

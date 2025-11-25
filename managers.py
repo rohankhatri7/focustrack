@@ -111,9 +111,36 @@ class TaskManager(BaseManager):
         task = self.session.get(Task, task_id)
         if not task:
             return False
-        self.session.delete(task)
+            self.session.delete(task)
+            self._commit()
+            return True
+
+    def update_task(self, task_id, title, description, due_date, priority, status, category_name):
+        # find existing task
+        task = self.session.get(Task, task_id)
+        if not task:
+            return None
+        if not title:
+            raise ValueError("Title is required")
+        if priority not in self.VALID_PRIORITIES:
+            raise ValueError("Invalid priority")
+        if status not in self.VALID_STATUS:
+            raise ValueError("Invalid status")
+
+        # find or create category
+        category = self.category_manager.get_or_create_category(category_name) if category_name else None
+
+        # update fields
+        task.title = title.strip()
+        task.description = (description or "").strip()
+        task.due_date = (due_date or "").strip()
+        task.priority = priority
+        task.status = status
+        task.category_id = category.id if category else None
+
+        # commit changes
         self._commit()
-        return True
+        return task
 
 
 class ReminderManager(BaseManager):

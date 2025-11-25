@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page">
+  <div class="card">
+    <h2>Edit Task</h2>
+    <form method="post" class="task-form">
+      <div class="form-grid">
+        <label>Title
+          <input type="text" name="title" value="{{ task.title }}" required>
+        </label>
+        <label>Description
+          <textarea name="description" rows="2">{{ task.description or '' }}</textarea>
+        </label>
+        <label>Due date
+          <input type="text" name="due_date" placeholder="YYYY-MM-DD" value="{{ task.due_date or '' }}">
+        </label>
+        <label>Priority
+          <select name="priority">
+            {% for p in priorities %}
+              <option value="{{ p }}" {% if task.priority == p %}selected{% endif %}>{{ p }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Status
+          <select name="status">
+            {% for s in statuses %}
+              <option value="{{ s }}" {% if task.status == s %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Category
+          <input type="text" name="category_name" list="category-list" value="{{ task.category.name if task.category else '' }}">
+          <datalist id="category-list">
+            {% for c in categories %}
+              <option value="{{ c.name }}"></option>
+            {% endfor %}
+          </datalist>
+        </label>
+      </div>
+      <button type="submit">Save Changes</button>
+      <a href="{{ url_for('tasks') }}" style="margin-left:8px;">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}
