@@ -1,21 +1,20 @@
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.sqlite3
-*.db
-
-# Virtual environments
-venv/
+# Python virtual environment
 .venv/
 
-# OS
-.DS_Store
-Thumbs.db
+# Python cache
+__pycache__/
+*.pyc
 
-# Flask/instance
-instance/
-
-# VS Code
+# VS Code settings
 .vscode/
+
+# SQLite database
+*.db
+
+# Environment variables
+.env
+
+# Mac system files
+.DS_Store
+
+.gitignore
