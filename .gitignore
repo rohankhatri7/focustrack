@@ -1,2 +1,21 @@
-.venv
-__pycache__
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.db
+
+# Virtual environments
+venv/
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Flask/instance
+instance/
+
+# VS Code
+.vscode/

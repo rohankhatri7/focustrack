@@ -32,11 +32,17 @@ Open http://127.0.0.1:5000 in your browser.
 - **Encapsulation**: managers hide all database session work; routes call manager methods instead of raw queries.
 - **Polymorphism**: managers can override `get_model_class()` to describe the model they handle.
 
+## Current features
+- Signup/login with per-user tasks (simple session-based auth).
+- Kanban-style task board (Pending / In Progress / Done) with drag-and-drop between columns.
+- Task CRUD with categories, priorities, due dates, and descriptions.
+- Dashboard summary and calendar view (tasks show descriptions on hover).
+
 ## Architecture
 - `database.py` sets up the engine, Base, and session factory.
-- `models.py` defines ORM models and shared helpers.
+- `models.py` defines ORM models (User, Task, Category, Reminder).
 - `managers.py` contains CRUD logic and validation so the Flask routes stay simple.
-- `main.py` creates the Flask app, global managers, and routes for dashboard, tasks, and calendar pages.
+- `main.py` creates the Flask app, global managers, auth routes, and pages.
 - `templates/` holds the HTML; `static/style.css` adds light styling.
 
 ## Future work: GCP deployment
