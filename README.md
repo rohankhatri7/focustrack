@@ -28,9 +28,9 @@ python main.py
 Open http://127.0.0.1:5000 in your browser.
 
 ## OOP concepts
-- **Inheritance**: `BaseModel` -> `Task`, `Category`, `Reminder`; `BaseManager` -> `TaskManager`, `CategoryManager`, `ReminderManager`.
+- **Inheritance**: `BaseManager` -> `TaskManager`, `CategoryManager`, `ReminderManager`.
 - **Encapsulation**: managers hide all database session work; routes call manager methods instead of raw queries.
-- **Polymorphism**: models override `summary()`; managers can override `get_model_class()` to describe the model they handle.
+- **Polymorphism**: managers can override `get_model_class()` to describe the model they handle.
 
 ## Architecture
 - `database.py` sets up the engine, Base, and session factory.

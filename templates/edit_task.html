@@ -1,18 +1,23 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="page">
-  <div class="card">
-    <h2>Edit Task</h2>
+  <div class="card form-card">
+    <div class="form-head">
+      <div>
+        <h2 style="margin:0;">Edit Task</h2>
+        <p class="hint-text">Update what changed and save.</p>
+      </div>
+    </div>
     <form method="post" class="task-form">
-      <div class="form-grid">
-        <label>Title
+      <div class="form-grid form-grid-2">
+        <label class="full-span">Title
           <input type="text" name="title" value="{{ task.title }}" required>
         </label>
-        <label>Description
-          <textarea name="description" rows="2">{{ task.description or '' }}</textarea>
+        <label class="full-span">Description
+          <textarea name="description" rows="3" placeholder="What needs to happen?">{{ task.description or '' }}</textarea>
         </label>
         <label>Due date
-          <input type="text" name="due_date" placeholder="YYYY-MM-DD" value="{{ task.due_date or '' }}">
+          <input type="date" name="due_date" value="{{ task.due_date or '' }}">
         </label>
         <label>Priority
           <select name="priority">
@@ -29,7 +34,7 @@
           </select>
         </label>
         <label>Category
-          <input type="text" name="category_name" list="category-list" value="{{ task.category.name if task.category else '' }}">
+          <input type="text" name="category_name" list="category-list" value="{{ task.category.name if task.category else '' }}" placeholder="Optional">
           <datalist id="category-list">
             {% for c in categories %}
               <option value="{{ c.name }}"></option>
@@ -37,8 +42,10 @@
           </datalist>
         </label>
       </div>
-      <button type="submit">Save Changes</button>
-      <a href="{{ url_for('tasks') }}" style="margin-left:8px;">Cancel</a>
+      <div class="form-actions">
+        <button type="submit">Save Changes</button>
+        <a class="link-btn" href="{{ url_for('tasks') }}">Cancel</a>
+      </div>
     </form>
   </div>
 </div>

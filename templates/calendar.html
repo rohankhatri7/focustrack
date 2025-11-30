@@ -28,8 +28,9 @@
               <div class="calendar-date-number">{{ day }}</div>
               {% for task in day_tasks %}
                 <div class="calendar-task
-                  {% if task.status == 'Done' %}task-done{% elif task.status == 'In Progress' %}task-inprogress{% else %}task-pending{% endif %}">
-                  {{ task.title }}
+                  {% if task.status == 'Done' %}task-done{% elif task.status == 'In Progress' %}task-inprogress{% else %}task-pending{% endif %}"
+                  title="{{ task.title }}{% if task.description %}: {{ task.description }}{% endif %}">
+                  <span>{{ task.title }}</span>
                 </div>
               {% endfor %}
             </div>

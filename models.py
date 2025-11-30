@@ -5,36 +5,32 @@ from sqlalchemy.orm import relationship
 from database import Base
 
 
-class BaseModel(Base):
-    __abstract__ = True
+class User(Base):
+    __tablename__ = "users"
 
+    # super small user table: email + password hash
     id = Column(Integer, primary_key=True)
+    email = Column(String, unique=True, nullable=False)
+    password_hash = Column(String, nullable=False)
 
-    def summary(self):
-        return f"{self.__class__.__name__}#{self.id}"
-
-    def to_dict(self):
-        # build a plain dict for UI use
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
-
-    def __repr__(self):
-        return f"<{self.summary()}>"
+    tasks = relationship("Task", back_populates="user")
 
 
-class Category(BaseModel):
+class Category(Base):
     __tablename__ = "categories"
 
+    # categories are optional labels for tasks
+    id = Column(Integer, primary_key=True)
     name = Column(String, unique=True, nullable=False)
 
     tasks = relationship("Task", back_populates="category")
 
-    def summary(self):
-        return f"Category#{self.id}:{self.name}"
 
-
-class Task(BaseModel):
+class Task(Base):
     __tablename__ = "tasks"
 
+    # main task table; user_id ties it to the owner
+    id = Column(Integer, primary_key=True)
     title = Column(String, nullable=False)
     description = Column(String)
     due_date = Column(String)
@@ -42,25 +38,18 @@ class Task(BaseModel):
     status = Column(String)
     created_at = Column(String)
     category_id = Column(Integer, ForeignKey("categories.id"))
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     category = relationship("Category", back_populates="tasks")
-    reminders = relationship(
-        "Reminder",
-        back_populates="task",
-        cascade="all, delete-orphan",
-    )
-
-    def summary(self):
-        return f"Task#{self.id}:{self.title} due {self.due_date or 'n/a'}"
+    user = relationship("User", back_populates="tasks")
+    reminders = relationship("Reminder", back_populates="task", cascade="all, delete-orphan")  # delete reminders with task
 
 
-class Reminder(BaseModel):
+class Reminder(Base):
     __tablename__ = "reminders"
 
+    id = Column(Integer, primary_key=True)
     task_id = Column(Integer, ForeignKey("tasks.id"), nullable=False)
     remind_at = Column(String, nullable=False)
 
     task = relationship("Task", back_populates="reminders")
-
-    def summary(self):
-        return f"Reminder#{self.id} for Task {self.task_id}"
