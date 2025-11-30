@@ -1,4 +1,4 @@
-"""Managers hide database work from the Flask routes."""
+"""Managers hide database work from the Flask routes (keeps views short)."""
 from datetime import datetime
 
 from sqlalchemy import select
@@ -21,6 +21,7 @@ class BaseManager:
         return self.session.execute(stmt).scalars().all()
 
     def _commit(self):
+        # tiny helper so we don't repeat commit/rollback everywhere
         try:
             self.session.commit()
         except Exception:
@@ -33,6 +34,7 @@ class CategoryManager(BaseManager):
         return Category
 
     def get_or_create_category(self, name):
+        # reuse categories by name; create if not there
         cleaned = (name or "").strip()
         if not cleaned:
             return None
@@ -60,13 +62,16 @@ class TaskManager(BaseManager):
     def get_model_class(self):
         return Task
 
-    def create_task(self, title, description, due_date, priority, status, category_name):
+    def create_task(self, title, description, due_date, priority, status, category_name, user_id=None):
+        # tiny validations since this is just for class
         if not title:
             raise ValueError("Title is required")
         if priority not in self.VALID_PRIORITIES:
             raise ValueError("Invalid priority")
         if status not in self.VALID_STATUS:
             raise ValueError("Invalid status")
+        if not user_id:
+            raise ValueError("user_id required")
 
         category = self.category_manager.get_or_create_category(category_name) if category_name else None
         created_at = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -78,46 +83,49 @@ class TaskManager(BaseManager):
             status=status,
             created_at=created_at,
             category_id=category.id if category else None,
+            user_id=user_id,
         )
         self.session.add(task)
         self._commit()
         return task
 
-    def list_tasks(self, status=None):
+    def list_tasks(self, status=None, user_id=None):
         stmt = select(Task)
         if status and status in self.VALID_STATUS:
             stmt = stmt.where(Task.status == status)
+        if user_id:
+            stmt = stmt.where(Task.user_id == user_id)
         stmt = stmt.order_by(Task.due_date)
-        tasks = self.session.execute(stmt).scalars().all()
-        # touch relationships while session open
-        for task in tasks:
-            _ = task.category.name if task.category else None
-        return tasks
+        return self.session.execute(stmt).scalars().all()
 
-    def get_task(self, task_id):
-        return self.session.get(Task, task_id)
+    def get_task(self, task_id, user_id=None):
+        # make sure the task belongs to the user if user_id provided
+        task = self.session.get(Task, task_id)
+        if user_id and task and task.user_id != user_id:
+            return None
+        return task
 
-    def update_task_status(self, task_id, new_status):
+    def update_task_status(self, task_id, new_status, user_id=None):
         if new_status not in self.VALID_STATUS:
             raise ValueError("Invalid status")
-        task = self.session.get(Task, task_id)
+        task = self.get_task(task_id, user_id=user_id)
         if not task:
             return False
         task.status = new_status
         self._commit()
         return True
 
-    def delete_task(self, task_id):
-        task = self.session.get(Task, task_id)
+    def delete_task(self, task_id, user_id=None):
+        # simple guard so users can only delete their stuff
+        task = self.get_task(task_id, user_id=user_id)
         if not task:
             return False
-            self.session.delete(task)
-            self._commit()
-            return True
+        self.session.delete(task)
+        self._commit()
+        return True
 
-    def update_task(self, task_id, title, description, due_date, priority, status, category_name):
-        # find existing task
-        task = self.session.get(Task, task_id)
+    def update_task(self, task_id, title, description, due_date, priority, status, category_name, user_id=None):
+        task = self.get_task(task_id, user_id=user_id)
         if not task:
             return None
         if not title:
@@ -127,10 +135,8 @@ class TaskManager(BaseManager):
         if status not in self.VALID_STATUS:
             raise ValueError("Invalid status")
 
-        # find or create category
         category = self.category_manager.get_or_create_category(category_name) if category_name else None
 
-        # update fields
         task.title = title.strip()
         task.description = (description or "").strip()
         task.due_date = (due_date or "").strip()
@@ -138,7 +144,6 @@ class TaskManager(BaseManager):
         task.status = status
         task.category_id = category.id if category else None
 
-        # commit changes
         self._commit()
         return task
 
@@ -148,6 +153,7 @@ class ReminderManager(BaseManager):
         return Reminder
 
     def create_reminder(self, task_id, remind_at):
+        # not used much yet, but keeps reminders consistent
         if not remind_at:
             raise ValueError("remind_at required")
         reminder = Reminder(task_id=task_id, remind_at=remind_at)

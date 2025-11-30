@@ -28,6 +28,12 @@
       </nav>
     </aside>
     <div class="main-content">
+      {% if g.current_user %}
+        <div class="user-bar">
+          <span style="font-size:13px; color:#4b5563;">Logged in as {{ g.current_user.email }}</span>
+          <a href="{{ url_for('logout') }}" style="font-size:13px; text-decoration:none;">Log out</a>
+        </div>
+      {% endif %}
       {% block content %}{% endblock %}
     </div>
   </div>

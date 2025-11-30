@@ -1,80 +1,145 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="page">
-  <div class="card">
-    <h2>Add Task</h2>
+  <div class="card form-card">
+    <div class="form-head">
+      <div>
+        <h2 style="margin:0;">Add Task</h2>
+        <p class="hint-text">Keep it short. Due date and category are optional.</p>
+      </div>
+    </div>
     <form method="post" class="task-form">
-      <div class="form-grid">
-        <label>Title
-          <input type="text" name="title" required>
+      <div class="form-grid form-grid-2">
+        <label class="full-span">Title
+          <input type="text" name="title" placeholder="Study for CS exam" required>
         </label>
-        <label>Description
-          <textarea name="description" rows="2"></textarea>
+        <label class="full-span">Description
+          <textarea name="description" rows="3" placeholder="What needs to happen?"></textarea>
         </label>
         <label>Due date
-          <input type="text" name="due_date" placeholder="YYYY-MM-DD">
+          <input type="date" name="due_date">
         </label>
         <label>Priority
           <select name="priority">
             {% for p in priorities %}
-              <option value="{{ p }}">{{ p }}</option>
+              <option value="{{ p }}" {% if p == "Medium" %}selected{% endif %}>{{ p }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Status
+          <select name="status">
+            {% for s in statuses %}
+              <option value="{{ s }}" {% if s == "Pending" %}selected{% endif %}>{{ s }}</option>
             {% endfor %}
           </select>
         </label>
         <label>Category
-          <input type="text" name="category_name" list="category-list">
+          <input type="text" name="category_name" list="category-list" placeholder="Optional">
           <datalist id="category-list">
             {% for c in categories %}
               <option value="{{ c.name }}"></option>
             {% endfor %}
           </datalist>
         </label>
-        <label>Status
-          <select name="status">
-            {% for s in statuses %}
-              <option value="{{ s }}">{{ s }}</option>
-            {% endfor %}
-          </select>
-        </label>
       </div>
-      <button type="submit">Add Task</button>
+      <div class="form-actions">
+        <button type="submit">Add Task</button>
+      </div>
     </form>
   </div>
 
-  <div class="card">
-    <h2>Tasks</h2>
-    {% if tasks %}
-      <table class="simple-table">
-        <tr>
-          <th>Title</th><th>Due</th><th>Status</th><th>Category</th><th>Actions</th>
-        </tr>
-        {% for task in tasks %}
-          <tr>
-            <td>{{ task.title }}</td>
-            <td>{{ task.due_date or 'n/a' }}</td>
-            <td>
-              <span class="status-badge {% if task.status == 'Done' %}status-done{% elif task.status == 'In Progress' %}status-progress{% else %}status-pending{% endif %}">
-                {{ task.status }}
-              </span>
-            </td>
-            <td>{{ task.category.name if task.category else 'Uncategorized' }}</td>
-            <td>
-              <form action="{{ url_for('mark_done', task_id=task.id) }}" method="post" style="display:inline;">
-                <button type="submit">Mark Done</button>
-              </form>
-              <form action="{{ url_for('edit_task', task_id=task.id) }}" method="get" style="display:inline;">
-                <button type="submit" class="secondary">Edit</button>
-              </form>
-              <form action="{{ url_for('delete_task', task_id=task.id) }}" method="post" style="display:inline;">
-                <button type="submit" class="danger">Delete</button>
-              </form>
-            </td>
-          </tr>
-        {% endfor %}
-      </table>
-    {% else %}
-      <p>No tasks yet.</p>
-    {% endif %}
+  <div class="card kanban-card">
+    <div class="kanban-head">
+      <h2 style="margin:0;">Tasks</h2>
+    </div>
+    {% set columns = ["Pending", "In Progress", "Done"] %}
+    {% set column_icons = {"Pending": "🕒", "In Progress": "⚡", "Done": "✅"} %}
+    <div class="kanban-grid">
+      {% for col in columns %}
+        <div class="kanban-column" data-status="{{ col }}">
+          <div class="kanban-column-head">
+            <span>{{ column_icons[col] }} {{ col }}</span>
+            <span class="kanban-count">{{ tasks | selectattr('status', 'equalto', col) | list | length }}</span>
+          </div>
+          <div class="kanban-cards">
+            {% for task in tasks if task.status == col %}
+              <div class="kanban-card-item"
+                   draggable="true"
+                   data-task-id="{{ task.id }}">
+                <div class="kanban-card-top">
+                  <div class="kanban-title">{{ task.title }}</div>
+                  <div class="kanban-category-text">{{ task.category.name if task.category else 'Uncategorized' }}</div>
+                </div>
+                <div class="kanban-desc">{{ task.description or 'No description' }}</div>
+                  <div class="kanban-footer">
+                    <div class="kanban-due">
+                      {% if task.due_date %}
+                        <span class="pill pill-muted">📅 {{ task.due_date }}</span>
+                      {% else %}
+                        <span class="pill pill-muted">No due</span>
+                      {% endif %}
+                    </div>
+                  <div class="kanban-actions">
+                    {% if task.status != 'Done' %}
+                      <form action="{{ url_for('mark_done', task_id=task.id) }}" method="post">
+                        <button type="submit" class="mini pill-btn pill-done">Done</button>
+                      </form>
+                    {% endif %}
+                    <form action="{{ url_for('edit_task', task_id=task.id) }}" method="get">
+                      <button type="submit" class="mini pill-btn pill-edit">Edit</button>
+                    </form>
+                    <form action="{{ url_for('delete_task', task_id=task.id) }}" method="post" onsubmit="return confirm('Delete this task?')">
+                      <button type="submit" class="mini pill-btn pill-delete">Del</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+            {% if tasks | selectattr('status', 'equalto', col) | list | length == 0 %}
+              <div class="kanban-empty">Nothing here yet.</div>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
   </div>
 </div>
+
+<script>
+  const columns = document.querySelectorAll(".kanban-column");
+  let draggedId = null;
+
+  document.querySelectorAll(".kanban-card-item").forEach(card => {
+    card.addEventListener("dragstart", (e) => {
+      draggedId = card.dataset.taskId;
+      e.dataTransfer.effectAllowed = "move";
+      card.classList.add("dragging");
+    });
+    card.addEventListener("dragend", () => {
+      draggedId = null;
+      card.classList.remove("dragging");
+    });
+  });
+
+  columns.forEach(col => {
+    col.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      col.classList.add("drop-hover");
+    });
+    col.addEventListener("dragleave", () => {
+      col.classList.remove("drop-hover");
+    });
+    col.addEventListener("drop", (e) => {
+      e.preventDefault();
+      col.classList.remove("drop-hover");
+      const targetStatus = col.dataset.status;
+      if (!draggedId || !targetStatus) return;
+      fetch(`/tasks/${draggedId}/move`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: targetStatus })
+      }).then(() => window.location.reload());
+    });
+  });
+</script>
 {% endblock %}
