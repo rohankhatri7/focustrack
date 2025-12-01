@@ -4,8 +4,8 @@
   <div class="top-row">
     <div class="card card-progress">
       <h2>Overall Progress</h2>
-      <div class="progress-summary">{{ percent_complete }}% Complete</div>
-      <div class="progress-bar">
+			<div class="progress-summary">{{ percent_complete }}% Complete</div>
+			<div class="progress-bar">
         <div class="progress-segment progress-pending" style="width: {{ percent_pending }}%"></div>
         <div class="progress-segment progress-inprogress" style="width: {{ percent_in_progress }}%"></div>
         <div class="progress-segment progress-complete" style="width: {{ percent_complete }}%"></div>
@@ -31,21 +31,21 @@
           <div class="priority-item priority-high">
             <div class="priority-left">
               <span class="priority-dot"></span>
-              <span class="priority-label">🔥 High</span>
+              <span class="priority-label">High Priority</span>
             </div>
             <span class="priority-count">{{ counts_by_priority.high }}</span>
           </div>
           <div class="priority-item priority-medium">
             <div class="priority-left">
               <span class="priority-dot"></span>
-              <span class="priority-label">⏳ Medium</span>
+              <span class="priority-label">Medium Priority</span>
             </div>
             <span class="priority-count">{{ counts_by_priority.medium }}</span>
           </div>
           <div class="priority-item priority-low">
             <div class="priority-left">
               <span class="priority-dot"></span>
-              <span class="priority-label">✅ Low</span>
+              <span class="priority-label">Light Priority</span>
             </div>
             <span class="priority-count">{{ counts_by_priority.low }}</span>
           </div>
@@ -61,10 +61,20 @@
     {% if recent_tasks %}
       <div class="recent-list">
         {% for task in recent_tasks %}
+          {% set prio = task.priority or 'Low' %}
+          {% if prio == 'High' %}
+            {% set prio_marks = '!!!' %}
+            {% set prio_class = 'high' %}
+          {% elif prio == 'Medium' %}
+            {% set prio_marks = '!!' %}
+            {% set prio_class = 'medium' %}
+          {% else %}
+            {% set prio_marks = '!' %}
+            {% set prio_class = 'low' %}
+          {% endif %}
           <div class="recent-task-row">
-            <div class="task-status-icon">
-              {% if task.status == 'Done' %}✔{% elif task.status == 'In Progress' %}⏳{% else %}⬜{% endif %}
-            </div>
+            <div class="task-status-chip {% if task.status == 'Done' %}chip-done{% elif task.status == 'In Progress' %}chip-progress{% else %}chip-pending{% endif %}">{{ task.status }}</div>
+            <div class="priority-ticks {{ prio_class }}">{{ prio_marks }}</div>
             <div class="task-bar">{{ task.title }}</div>
             <div class="task-due">Due: {{ task.due_date or 'No date' }}</div>
           </div>
