@@ -1,6 +1,4 @@
-"""Simple database helpers for FocusTrack."""
 from pathlib import Path
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
@@ -10,7 +8,5 @@ engine = create_engine(f"sqlite:///{DB_PATH}", future=True)
 SessionLocal = sessionmaker(bind=engine, expire_on_commit=False, future=True)
 Base = declarative_base()
 
-
 def get_session():
-    """Return a new SQLAlchemy session."""
     return SessionLocal()

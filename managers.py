@@ -1,10 +1,6 @@
-"""Managers hide database work from the Flask routes (keeps views short)."""
 from datetime import datetime
-
 from sqlalchemy import select
-
 from models import Category, Reminder, Task
-
 
 class BaseManager:
     def __init__(self, session):
@@ -21,13 +17,12 @@ class BaseManager:
         return self.session.execute(stmt).scalars().all()
 
     def _commit(self):
-        # tiny helper so we don't repeat commit/rollback everywhere
+        # don't repeat rollback/commit
         try:
             self.session.commit()
         except Exception:
             self.session.rollback()
             raise
-
 
 class CategoryManager(BaseManager):
     def get_model_class(self):
@@ -50,7 +45,6 @@ class CategoryManager(BaseManager):
     def list_categories(self):
         return self.list_all()
 
-
 class TaskManager(BaseManager):
     VALID_PRIORITIES = ["Low", "Medium", "High"]
     VALID_STATUS = ["Pending", "In Progress", "Done"]
@@ -63,7 +57,6 @@ class TaskManager(BaseManager):
         return Task
 
     def create_task(self, title, description, due_date, priority, status, category_name, user_id=None):
-        # tiny validations since this is just for class
         if not title:
             raise ValueError("Title is required")
         if priority not in self.VALID_PRIORITIES:
@@ -116,7 +109,7 @@ class TaskManager(BaseManager):
         return True
 
     def delete_task(self, task_id, user_id=None):
-        # simple guard so users can only delete their stuff
+        # only allow users to delete what belongs to them
         task = self.get_task(task_id, user_id=user_id)
         if not task:
             return False
@@ -146,7 +139,6 @@ class TaskManager(BaseManager):
 
         self._commit()
         return task
-
 
 class ReminderManager(BaseManager):
     def get_model_class(self):

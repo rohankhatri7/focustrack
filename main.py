@@ -9,11 +9,11 @@ from database import Base, engine, get_session
 import models
 from managers import CategoryManager, ReminderManager, TaskManager
 
-# flask app + secret key for sessions/cookies (swap for real secret if shipping)
+# flask app + secret key for sessions
 app = Flask(__name__)
-app.secret_key = "dev-secret-key"  # fine for demos; change if deploying
+app.secret_key = "dev-secret-key" #placeholder for now
 
-# one shared session to keep this student project simple (no fancy dependency injection)
+# one shared session
 db_session = get_session()
 task_manager = TaskManager(db_session)
 category_manager = task_manager.category_manager
@@ -22,14 +22,12 @@ reminder_manager = ReminderManager(db_session)
 # make sure tables exist before handling requests
 Base.metadata.create_all(engine)
 
-
 def get_current_user():
     # look up the user_id stored in the session cookie and return the ORM user
     user_id = flask_session.get("user_id")
     if not user_id:
         return None
     return db_session.get(models.User, user_id)
-
 
 @app.before_request
 def require_login():
@@ -43,14 +41,13 @@ def require_login():
         return redirect(url_for("login"))
     return None
 
-
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
-    message = ""  # quick way to show errors on the page
+    message = ""  # display erros on page
     if g.current_user:
         return redirect(url_for("dashboard"))
     if request.method == "POST":
-        # pull form fields; strip/normalize email so duplicates match
+        # pull form fields
         email = (request.form.get("email") or "").strip().lower()
         password = request.form.get("password") or ""
         confirm = request.form.get("confirm") or ""
@@ -78,10 +75,9 @@ def signup():
                     return redirect(url_for("login"))
     return render_template("signup.html", message=message, active_page=None)
 
-
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    message = ""  # basic error string; no flash to keep it simple
+    message = ""  # basic error string
     if g.current_user:
         return redirect(url_for("dashboard"))
     if request.method == "POST":
@@ -97,12 +93,10 @@ def login():
             message = "Bad email or password."
     return render_template("login.html", message=message, active_page=None)
 
-
 @app.route("/logout")
 def logout():
     flask_session.clear()
     return redirect(url_for("login"))
-
 
 @app.route("/")
 @app.route("/dashboard")
@@ -165,7 +159,6 @@ def tasks():
                 title, description, due_date, priority, status, category_name, user_id=g.current_user.id
             )
         except Exception:
-            # keep simple; ignoring errors is fine for a quick class demo
             pass
         return redirect(url_for("tasks"))
 
@@ -179,7 +172,6 @@ def tasks():
         priorities=TaskManager.VALID_PRIORITIES,
         statuses=TaskManager.VALID_STATUS,
     )
-
 
 # edit task
 @app.route("/tasks/<int:task_id>/edit", methods=["GET", "POST"])
@@ -214,12 +206,10 @@ def edit_task(task_id):
         statuses=TaskManager.VALID_STATUS,
     )
 
-
 @app.route("/tasks/<int:task_id>/done", methods=["POST"])
 def mark_done(task_id):
     task_manager.update_task_status(task_id, "Done", user_id=g.current_user.id)
     return redirect(url_for("tasks"))
-
 
 @app.route("/tasks/<int:task_id>/move", methods=["POST"])
 def move_task(task_id):
@@ -231,16 +221,14 @@ def move_task(task_id):
         return {"error": "not found"}, 404
     return {"ok": True}
 
-
 @app.route("/tasks/<int:task_id>/delete", methods=["POST"])
 def delete_task(task_id):
     task_manager.delete_task(task_id, user_id=g.current_user.id)
     return redirect(url_for("tasks"))
 
-
 @app.route("/calendar", endpoint="calendar")
 def calendar_view():
-    # lightweight calendar: uses month matrix and groups tasks by due date string
+    # visual calendar
     today = date.today()
     year = request.args.get("year", type=int) or today.year
     month = request.args.get("month", type=int) or today.month
