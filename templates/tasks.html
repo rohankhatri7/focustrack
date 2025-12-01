@@ -5,7 +5,6 @@
     <div class="form-head">
       <div>
         <h2 style="margin:0;">Add Task</h2>
-        <p class="hint-text">Keep it short. Due date and category are optional.</p>
       </div>
     </div>
     <form method="post" class="task-form">
@@ -50,15 +49,16 @@
 
   <div class="card kanban-card">
     <div class="kanban-head">
-      <h2 style="margin:0;">Tasks</h2>
+      <div>
+        <h2 style="margin:0;">Tasks</h2>
+      </div>
     </div>
     {% set columns = ["Pending", "In Progress", "Done"] %}
-    {% set column_icons = {"Pending": "🕒", "In Progress": "⚡", "Done": "✅"} %}
     <div class="kanban-grid">
       {% for col in columns %}
         <div class="kanban-column" data-status="{{ col }}">
           <div class="kanban-column-head">
-            <span>{{ column_icons[col] }} {{ col }}</span>
+            <span class="kanban-tab">{{ col }}</span>
             <span class="kanban-count">{{ tasks | selectattr('status', 'equalto', col) | list | length }}</span>
           </div>
           <div class="kanban-cards">
@@ -72,13 +72,13 @@
                 </div>
                 <div class="kanban-desc">{{ task.description or 'No description' }}</div>
                   <div class="kanban-footer">
-                    <div class="kanban-due">
-                      {% if task.due_date %}
-                        <span class="pill pill-muted">📅 {{ task.due_date }}</span>
-                      {% else %}
-                        <span class="pill pill-muted">No due</span>
-                      {% endif %}
-                    </div>
+                  <div class="kanban-due">
+                    {% if task.due_date %}
+                      <span class="pill pill-muted">{{ task.due_date }}</span>
+                    {% else %}
+                      <span class="pill pill-muted">No due</span>
+                    {% endif %}
+                  </div>
                   <div class="kanban-actions">
                     {% if task.status != 'Done' %}
                       <form action="{{ url_for('mark_done', task_id=task.id) }}" method="post">

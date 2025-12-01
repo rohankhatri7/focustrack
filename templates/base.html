@@ -10,20 +10,23 @@
     <aside class="sidebar">
       <div class="sidebar-header">
         <div class="app-title">FocusTrack</div>
-        <div class="app-subtitle">Work smarter not harder</div>
+        <div class="app-subtitle">Task management planner</div>
       </div>
       <nav class="nav-links">
         <a class="nav-link {% if active_page == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">
-          <span class="nav-icon">📊</span>
-          <span class="nav-label">Dashboard</span>
+          <div class="nav-text">
+            <span class="nav-label">Dashboard</span>
+          </div>
         </a>
         <a class="nav-link {% if active_page == 'tasks' %}active{% endif %}" href="{{ url_for('tasks') }}">
-          <span class="nav-icon">✅</span>
-          <span class="nav-label">Tasks</span>
+          <div class="nav-text">
+            <span class="nav-label">Tasks</span>
+          </div>
         </a>
         <a class="nav-link {% if active_page == 'calendar' %}active{% endif %}" href="{{ url_for('calendar') }}">
-          <span class="nav-icon">📅</span>
-          <span class="nav-label">Calendar</span>
+          <div class="nav-text">
+            <span class="nav-label">Calendar</span>
+          </div>
         </a>
       </nav>
     </aside>

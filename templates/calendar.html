@@ -27,10 +27,23 @@
             <div class="calendar-cell {% if cell_date == today %}today{% endif %} {% if day_tasks %}has-tasks{% endif %}">
               <div class="calendar-date-number">{{ day }}</div>
               {% for task in day_tasks %}
+                {% set prio = task.priority or 'Low' %}
+                {% if prio == 'High' %}
+                  {% set prio_marks = '!!!' %}
+                  {% set prio_class = 'priority-high' %}
+                {% elif prio == 'Medium' %}
+                  {% set prio_marks = '!!' %}
+                  {% set prio_class = 'priority-medium' %}
+                {% else %}
+                  {% set prio_marks = '!' %}
+                  {% set prio_class = 'priority-low' %}
+                {% endif %}
                 <div class="calendar-task
-                  {% if task.status == 'Done' %}task-done{% elif task.status == 'In Progress' %}task-inprogress{% else %}task-pending{% endif %}"
+                  {% if task.status == 'Done' %}task-done{% elif task.status == 'In Progress' %}task-inprogress{% else %}task-pending{% endif %}
+                  {{ prio_class }}"
                   title="{{ task.title }}{% if task.description %}: {{ task.description }}{% endif %}">
-                  <span>{{ task.title }}</span>
+                  <span class="priority-ribbon">{{ prio_marks }}</span>
+                  <span class="calendar-task-title">{{ task.title }}</span>
                 </div>
               {% endfor %}
             </div>
